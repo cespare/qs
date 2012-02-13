@@ -16,6 +16,7 @@ hash scrot 2>&- || fail "requires scrot (sudo apt-get install scrot)"
 hash xclip 2>&- || fail "requires xclip (sudo apt-get install xclip)"
 hash curl 2>&- || fail "requires curl (sudo apt-get install curl)"
 hash xdg-open 2>&- || fail "requires xdg-open (sudo apt-get install xdg-utils)"
+hash ruby 2>&- || fail "requires ruby (sudo apt-get install ruby)"
 [[ -z $IMGUR_API_KEY ]] && fail '$IMGUR_API_KEY needs to be set (to your Imgur developer API key).'
 
 
@@ -25,4 +26,7 @@ xdg-open $TEMP
 read -p "Upload this screenshot to imgur? [yN] " -n 1
 echo
 [[ ! $REPLY =~ ^[Yy]$ ]] && exit 1
-curl -F "image=@$TEMP" -F "key=$IMGUR_API_KEY" http://api.imgur.com/2/upload.json
+url=$(curl -F "image=@$TEMP" -F "key=$IMGUR_API_KEY" http://api.imgur.com/2/upload.json | ruby -pe '$_.match /"original":"([^"]*)",/; $_ = $1.gsub("\\", "")')
+echo -n $url | xclip
+echo "Image uploaded to imgur (this url is in your clipboard as well):"
+echo $url
